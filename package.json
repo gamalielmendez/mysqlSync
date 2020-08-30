@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "electron ."
+    "test": "node ./test/test.js"
   },
   "repository": {
     "type": "git",
@@ -16,7 +16,7 @@
     "url": "https://github.com/gamalielmendez/mysqlSync/issues"
   },
   "homepage": "https://github.com/gamalielmendez/mysqlSync#readme",
-  "devDependencies": {
-    "electron": "^8.2.0"
+  "dependencies": {
+    "mysql": "^2.18.1"
   }
 }

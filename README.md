@@ -26,7 +26,7 @@ yarn add @gamalielmh921230/mysqlsync
 ### **Como se Usa**
 
 ```javascript 
-const {Mysql} = require('mysqlSync')
+const {Mysql} = require('@gamalielmh921230/mysqlsync')
 
 const Cnn = new Mysql({
     host: "localhost", 
@@ -54,7 +54,7 @@ console.log(result.FECHA)//--> imprime la fecha del servidor
 - **ReleaseConections():** *Cierra la conexion con la base de datos*
 
 ```javascript 
-const {Mysql,SyncDb} = require('mysqlSync')
+const {Mysql,SyncDb} = require('@gamalielmh921230/mysqlsync')
 
 //se crea la conexion con la base de datos que recibira los cambios
 const CnnClient = new Mysql({

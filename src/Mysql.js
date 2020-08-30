@@ -5,8 +5,10 @@ module.exports = class Mysql {
     constructor(dbConfig) {
         
         this.connection = mysql.createConnection(dbConfig);
-        this.cDatabase  = dbConfig.database
-        this.releasecnn = false
+        
+        this.cDatabase   = dbConfig.database
+        this.host        = dbConfig.host
+        this.releasecnn  = false
         this.isConnected = false
 
     }
@@ -71,6 +73,7 @@ module.exports = class Mysql {
     }
 
     rollback() {
+        
         return new Promise((resolve) => {
 
             this.connection.rollback(() => { resolve() });
@@ -79,4 +82,21 @@ module.exports = class Mysql {
     }
 
     escape(str) { return this.connection.escape(str) }
+
+    async showSchemas(){
+
+        if(this.isConnected){
+
+            const Database= await this.query("SHOW DATABASES")
+            return Database.reduce((P,C)=>{
+                P.push(C.Database)
+                return P
+            },[])
+
+        }else{
+            return []
+        }
+
+    }
+
 }

@@ -17,12 +17,21 @@ module.exports = class SyncDb extends DriverMysql {
 
     async Compare() {
 
-        await this.InitConections()
-        this.TablesDiff      = await this.getCompareTables()
-        this.ViewsDiff       = await this.getCompareViews()
-        this.ProceduresDiff  = await this.getCompareProcedures()
-        this.FunctionsDiff   = await this.getCompareFunctions()
-        this.lExecuteCompare = true
+        try {
+            
+            await this.InitConections()
+            this.TablesDiff      = await this.getCompareTables()
+            this.ViewsDiff       = await this.getCompareViews()
+            this.ProceduresDiff  = await this.getCompareProcedures()
+            this.FunctionsDiff   = await this.getCompareFunctions()
+            this.lExecuteCompare = true
+
+            return true
+
+        } catch (error) {
+            console.log(error)    
+            return false
+        }
 
     }
 
@@ -30,10 +39,8 @@ module.exports = class SyncDb extends DriverMysql {
 
         try {
 
-            if(!this.lExecuteCompare){
-                await this.Compare()
-            }
-
+            if(!this.lExecuteCompare){ await this.Compare() }
+            
             await this.InitConections()
             await this.PrepareSync()
             await this.SyncTables()
@@ -42,10 +49,13 @@ module.exports = class SyncDb extends DriverMysql {
             await this.SyncFunctions()
             await this.FinalizeSync()
 
+            return true
+
         } catch (error) {
             
             console.log(error)
             await this.Cnn1.rollback()
+            return false
 
         }
 
@@ -97,7 +107,15 @@ module.exports = class SyncDb extends DriverMysql {
                 const Table = this.ViewsDiff[key]
 
                 if (Table.Action == EnumActions.CREATE_TABLE || Table.Action == EnumActions.DROP_TABLE) {
-                    //se crea la tabla
+                    
+                    //se crea el objeto nuevo
+                    await this.Cnn1.query(Table.ActionQuery)
+
+                }else if(Table.Action == EnumActions.ALTER_TABLE){
+                    
+                    //se elimina el objeto anterior
+                    await this.Cnn1.query(Table.DropAction)
+                    //se crea el objeto nuevo
                     await this.Cnn1.query(Table.ActionQuery)
 
                 }
@@ -119,6 +137,11 @@ module.exports = class SyncDb extends DriverMysql {
                 if (Table.Action == EnumActions.CREATE_TABLE || Table.Action == EnumActions.DROP_TABLE) {
                     //se crea la tabla
                     await this.Cnn1.query(Table.ActionQuery)
+                }else if(Table.Action == EnumActions.ALTER_TABLE){
+                    //se elimina el objeto anterior
+                    await this.Cnn1.query(Table.DropAction)
+                    //se crea el objeto nuevo
+                    await this.Cnn1.query(Table.ActionQuery)
                 }
 
             }
@@ -137,6 +160,11 @@ module.exports = class SyncDb extends DriverMysql {
 
                 if (Table.Action == EnumActions.CREATE_TABLE || Table.Action == EnumActions.DROP_TABLE) {
                     //se crea la tabla
+                    await this.Cnn1.query(Table.ActionQuery)
+                }else if(Table.Action == EnumActions.ALTER_TABLE){
+                    //se elimina el objeto anterior
+                    await this.Cnn1.query(Table.DropAction)
+                    //se crea el objeto nuevo
                     await this.Cnn1.query(Table.ActionQuery)
                 }
 

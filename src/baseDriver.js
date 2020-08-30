@@ -50,14 +50,16 @@ module.exports = class BaseDriver {
 
                 Actions[C] = {
                     Action: EnumActions.CREATE_TABLE,
-                    ActionQuery: await this.GetStructure(this.Cnn2, C, cType)
+                    ActionQuery: await this.GetStructure(this.Cnn2, C, cType),
+                    DropAction:this.GetDropQuery(C, cType)
                 }
 
             } else if (!(C in SArray)) {
 
                 Actions[C] = {
                     Action: EnumActions.DROP_TABLE,
-                    ActionQuery: this.GetDropQuery(C, cType)
+                    ActionQuery: this.GetDropQuery(C, cType),
+                    DropAction:this.GetDropQuery(C, cType)
                 }
 
             } else {
@@ -68,13 +70,15 @@ module.exports = class BaseDriver {
                     if (!(Field in SArray[C])) {
                         Actions[C] = {
                             Action: EnumActions.ALTER_TABLE,
-                            ActionQuery: await this.GetStructure(this.Cnn2, C, cType)
+                            ActionQuery: await this.GetStructure(this.Cnn2, C, cType),
+                            DropAction:this.GetDropQuery(C, cType)
                         }
                         break
                     } else if (!(Field in TArray[C])) {
                         Actions[C] = {
                             Action: EnumActions.ALTER_TABLE,
-                            ActionQuery: await this.GetStructure(this.Cnn2, C, cType)
+                            ActionQuery: await this.GetStructure(this.Cnn2, C, cType),
+                            DropAction:this.GetDropQuery(C, cType)
                         }
                         break
                     } else if ((Field in TArray[C]) && (Field in SArray[C])) {
@@ -83,7 +87,8 @@ module.exports = class BaseDriver {
                             if ((TArray[C][Field]['dtype'] !== SArray[C][Field]['dtype'])) {
                                 Actions[C] = {
                                     Action: EnumActions.ALTER_TABLE,
-                                    ActionQuery: await this.GetStructure(this.Cnn2, C, cType)
+                                    ActionQuery: await this.GetStructure(this.Cnn2, C, cType),
+                                    DropAction:this.GetDropQuery(C, cType)
                                 }
                                 break
                             }

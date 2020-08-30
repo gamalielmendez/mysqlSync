@@ -1,39 +1,29 @@
-
-
-
 (async function () {
 
-    const Mysql = require('../src/Mysql')
-    const SyncDb = require('../src/SyncDb')
-
+    const {Mysql,SyncDb} = require('../index')
+ 
     // se conecta con el primer servidor
-    const Ocnn1 = new Mysql({
-        host: "myhostip", // ip address of server running mysql
-        user: "root", // user name to your mysql database
-        password: "*****", // corresponding password
-        database: "mydb", // use the specified database
+    const OcnnSource = new Mysql({
+        host: "remotehost", 
+        user: "root", 
+        password: "12345",
+        database: "my_master_model_db",
         timeout: 60000
     })
 
     // se conecta con el segundo servidor
-    const Ocnn2 = new Mysql({
-        host: "myhostip", // ip address of server running mysql
-        user: "root", // user name to your mysql database
-        password: "*****", // corresponding password
-        database: "mydb", // use the specified database
+    const OcnnTarget = new Mysql({
+        host: "localhost",
+        user: "root",
+        password: "12345",
+        database: "my_client_db",
         timeout: 60000
     })
 
-    //se establece la conexion
-    await Ocnn1.connect()
-    await Ocnn2.connect()
-
-    const sync = new SyncDb(Ocnn1, Ocnn2)
+    //se sincronizan las bases de datos
+    const sync = new SyncDb(OcnnTarget, OcnnSource)
     await sync.Compare()
     await sync.Sync()
-
-    //se cierra la conexion
-    await Ocnn2.release()
-    await Ocnn1.release()
+    await sync.ReleaseConections()
 
 }());

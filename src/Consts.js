@@ -1,5 +1,4 @@
 
-
 module.exports = {
     EnumActions: {
         CREATE_TABLE: 1,

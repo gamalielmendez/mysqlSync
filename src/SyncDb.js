@@ -4,19 +4,25 @@ const { EnumActions } = require('./Consts')
 module.exports = class SyncDb extends DriverMysql {
 
     constructor(TargetCnn, SourceCnn) {
+        
         super(TargetCnn, SourceCnn)
 
         this.TablesDiff = {}
         this.ViewsDiff = {}
+        this.ProceduresDiff = {}
+        this.FunctionsDiff = {}
+        this.lExecuteCompare=false
 
     }
 
     async Compare() {
 
-        this.TablesDiff = await this.getCompareTables()
-        this.ViewsDiff = await this.getCompareViews()
-        this.ProceduresDiff = await this.getCompareProcedures()
-        this.FunctionsDiff = await this.getCompareFunctions()
+        await this.InitConections()
+        this.TablesDiff      = await this.getCompareTables()
+        this.ViewsDiff       = await this.getCompareViews()
+        this.ProceduresDiff  = await this.getCompareProcedures()
+        this.FunctionsDiff   = await this.getCompareFunctions()
+        this.lExecuteCompare = true
 
     }
 
@@ -24,6 +30,11 @@ module.exports = class SyncDb extends DriverMysql {
 
         try {
 
+            if(!this.lExecuteCompare){
+                await this.Compare()
+            }
+
+            await this.InitConections()
             await this.PrepareSync()
             await this.SyncTables()
             await this.SyncViews()
@@ -88,7 +99,7 @@ module.exports = class SyncDb extends DriverMysql {
                 if (Table.Action == EnumActions.CREATE_TABLE || Table.Action == EnumActions.DROP_TABLE) {
                     //se crea la tabla
                     await this.Cnn1.query(Table.ActionQuery)
-                    
+
                 }
 
             }
@@ -162,9 +173,30 @@ module.exports = class SyncDb extends DriverMysql {
     }
 
     async FinalizeSync(){
+        
         await this.Cnn1.query( "SET FOREIGN_KEY_CHECKS = 1" )
         await this.Cnn1.commit()
+        
+        this.lExecuteCompare=false
+        this.TablesDiff = {}
+        this.ViewsDiff = {}
+        this.ProceduresDiff = {}
+        this.FunctionsDiff = {}
+        this.lExecuteCompare=false
+
     }
 
+    async InitConections(){
 
+        if(!this.Cnn1.isConnected){ await this.Cnn1.connect() }
+        if(!this.Cnn2.isConnected){ await this.Cnn2.connect() }
+
+    }
+
+    async ReleaseConections(){
+
+        if(this.Cnn1.isConnected){ await this.Cnn1.release() }
+        if(this.Cnn2.isConnected){ await this.Cnn2.release() }
+
+    }
 }

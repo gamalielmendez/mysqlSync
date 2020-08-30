@@ -4,9 +4,10 @@ module.exports = class Mysql {
 
     constructor(dbConfig) {
         
-       this.connection = mysql.createConnection(dbConfig);
+        this.connection = mysql.createConnection(dbConfig);
         this.cDatabase  = dbConfig.database
         this.releasecnn = false
+        this.isConnected = false
 
     }
 
@@ -14,8 +15,10 @@ module.exports = class Mysql {
         return new Promise((resolve, reject) => {
             this.connection.connect((err) => {
                 if (err){
+                    this.isConnected = false
                     return reject(err);
                 }else{
+                    this.isConnected = true
                     resolve(this.connection.threadId);
                 }
             });
@@ -35,6 +38,7 @@ module.exports = class Mysql {
     release() {
         if (!this.releasecnn) {
             this.releasecnn = true
+            this.isConnected = false
             this.connection.end()
         }
     }

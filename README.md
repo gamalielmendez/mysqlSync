@@ -5,9 +5,9 @@
 # Como Se Instala
 ```javascript 
 //con npm
-npm i mysqlSync 
+npm i @gamalielmh921230/mysqlsync 
 //con yarn
-yarn add mysqlSync
+yarn add @gamalielmh921230/mysqlsync
 ````
 # Clases Que La Componen
 ## **Mysql**

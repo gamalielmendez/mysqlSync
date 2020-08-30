@@ -8,19 +8,19 @@
 
     // se conecta con el primer servidor
     const Ocnn1 = new Mysql({
-        host: "gamaliel.d2g.com", // ip address of server running mysql
+        host: "myhostip", // ip address of server running mysql
         user: "root", // user name to your mysql database
-        password: "Mt2017@", // corresponding password
-        database: "mt_factura_tango", // use the specified database
+        password: "*****", // corresponding password
+        database: "mydb", // use the specified database
         timeout: 60000
     })
 
     // se conecta con el segundo servidor
     const Ocnn2 = new Mysql({
-        host: "gamaliel.d2g.com", // ip address of server running mysql
+        host: "myhostip", // ip address of server running mysql
         user: "root", // user name to your mysql database
-        password: "Mt2017@", // corresponding password
-        database: "mt_factura_marino", // use the specified database
+        password: "*****", // corresponding password
+        database: "mydb", // use the specified database
         timeout: 60000
     })
 

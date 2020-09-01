@@ -8,6 +8,7 @@
         user: "root", 
         password: "12345",
         database: "my_master_model_db",
+        port:3306,
         timeout: 60000
     })
 
@@ -17,7 +18,9 @@
         user: "root",
         password: "12345",
         database: "my_client_db",
+        port:3306,
         timeout: 60000
+       
     })
 
     //se sincronizan las bases de datos

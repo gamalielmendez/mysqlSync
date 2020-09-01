@@ -1,25 +1,32 @@
-const mysql= require('mysql');
+const mysql = require('mysql');
 
 module.exports = class Mysql {
 
     constructor(dbConfig) {
         
-        this.connection = mysql.createConnection(dbConfig);
-        
-        this.cDatabase   = dbConfig.database
-        this.host        = dbConfig.host
-        this.releasecnn  = false
+        this.CnnParams=dbConfig
+        this.cDatabase = dbConfig.database
+        this.host = dbConfig.host
+        this.releasecnn = false
         this.isConnected = false
+
+        //se crea la instancia de la conexion
+        this.InicializeConection()
 
     }
 
-    connect(){
+    InicializeConection(){
+        this.connection = mysql.createConnection(this.CnnParams);
+        this.connection.on('error', this.onError)
+    }
+
+    connect() {
         return new Promise((resolve, reject) => {
             this.connection.connect((err) => {
-                if (err){
+                if (err) {
                     this.isConnected = false
                     return reject(err);
-                }else{
+                } else {
                     this.isConnected = true
                     resolve(this.connection.threadId);
                 }
@@ -73,7 +80,7 @@ module.exports = class Mysql {
     }
 
     rollback() {
-        
+
         return new Promise((resolve) => {
 
             this.connection.rollback(() => { resolve() });
@@ -83,20 +90,25 @@ module.exports = class Mysql {
 
     escape(str) { return this.connection.escape(str) }
 
-    async showSchemas(){
+    async showSchemas() {
 
-        if(this.isConnected){
+        if (this.isConnected) {
 
-            const Database= await this.query("SHOW DATABASES")
-            return Database.reduce((P,C)=>{
+            const Database = await this.query("SHOW DATABASES")
+            return Database.reduce((P, C) => {
                 P.push(C.Database)
                 return P
-            },[])
+            }, [])
 
-        }else{
+        } else {
             return []
         }
 
     }
 
+    onError(err) {
+        if (err.code === `PROTOCOL_CONNECTION_LOST`) {
+           this.InicializeConection()
+        }
+    }
 }

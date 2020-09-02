@@ -1,7 +1,6 @@
 # mysqlSync
 ### **mysqlSync** es una herramienta para sincronizar la esturctura de una base de datos apartir de otra añadiendo o eliminando tablas,campos,funciones,procedimientos dependendiendo las diferencias que se encuentren entre una y otra.
 
-
 # Como Se Instala
 ```javascript 
 //con npm
@@ -105,3 +104,11 @@ await sync.ReleaseConections()
 ## **ConstansSync**
 ### **Propiedades**
 - **EnumActions ->** *objeto con las acciones posibles en la sincronizacion*. {**CREATE_TABLE**: 1,**ALTER_TABLE**: 2,**DROP_TABLE**: 3}
+
+### **Apoyar el proyecto**
+<form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
+<input type="hidden" name="cmd" value="_s-xclick" />
+<input type="hidden" name="hosted_button_id" value="HJT3RJKJ44EWQ" />
+<input type="image" src="https://www.paypalobjects.com/es_XC/MX/i/btn/btn_donateCC_LG.gif" border="0" name="submit" title="PayPal - The safer, easier way to pay online!" alt="Donar con el botón PayPal" />
+<img alt="" border="0" src="https://www.paypal.com/es_MX/i/scr/pixel.gif" width="1" height="1" />
+</form>

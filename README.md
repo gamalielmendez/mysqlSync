@@ -106,4 +106,5 @@ await sync.ReleaseConections()
 - **EnumActions ->** *objeto con las acciones posibles en la sincronizacion*. {**CREATE_TABLE**: 1,**ALTER_TABLE**: 2,**DROP_TABLE**: 3}
 
 ### **Apoyar el proyecto**
-https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=HJT3RJKJ44EWQ&source=url
+[![alt text](https://www.paypalobjects.com/es_XC/MX/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=HJT3RJKJ44EWQ&source=url
+)

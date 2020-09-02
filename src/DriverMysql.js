@@ -71,5 +71,5 @@ module.exports = class DriverMysql extends BaseDriver {
         return await this._getCompareArray(query, false, false, cType)
 
     }
-
+    
 }

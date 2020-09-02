@@ -52,6 +52,7 @@ console.log(result.FECHA)//--> imprime la fecha del servidor
 ### **Metodos**
 - **Compare():** *Compra la estructura de las bases de datos y obtiene las diferencias*
 - **Sync():** *Sincroniza la estructura de las bases de datos aplicando las diferencias encontradas(si no se llamo al metodo Compare antes lo llama internamente).*
+- **CopyTable(TableName, SourceSchema, TargetSchema, lData=false):** *Copia una tabla de un schema a otro con o sin datos*
 - **ReleaseConections():** *Cierra la conexion con la base de datos*
 
 ```javascript 
@@ -102,6 +103,22 @@ await sync.ReleaseConections()
     | 1 | hola  |            |
     --------------------------
 */
+
+//ejemplo para copiar una tabla
+// se conecta con el primer servidor
+const oCnn = new Mysql({
+    host: "localhost", 
+    user: "root", 
+    password: "****",
+    port:3306,
+    timeout: 60000
+})
+
+//se copian tablas dentro de la misma conexion(pueden ser diferentes conexiones)
+const sync = new SyncDb(oCnn, oCnn)
+await sync.CopyTable('mytbl1','mydborigen','mydbdestino',lCopiarDatos)//se copia con datos
+await sync.CopyTable('mytbl2','mydborigen','mydbdestino')//se copia sin datos   
+await sync.ReleaseConections()
 ````
 ## **ConstansSync**
 ### **Propiedades**

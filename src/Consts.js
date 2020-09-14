@@ -4,5 +4,11 @@ module.exports = {
         CREATE_TABLE: 1,
         ALTER_TABLE: 2,
         DROP_TABLE: 3,
+    },
+    EnumRowFormat:{
+        ROW_FORMAT_COMPACT:'ROW_FORMAT=COMPACT',
+        ROW_FORMAT_DYNAMIC:'ROW_FORMAT=DYNAMIC',
+        ROW_FORMAT_COMPRESSED:'ROW_FORMAT=COMPRESSED',
+        ROW_FORMAT_REDUNDANT:'ROW_FORMAT=REDUNDANT',
     }
 }

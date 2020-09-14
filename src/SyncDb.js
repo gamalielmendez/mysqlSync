@@ -1,5 +1,9 @@
 const DriverMysql = require('./DriverMysql')
-const { EnumActions } = require('./Consts')
+const { EnumActions,EnumRowFormat } = require('./Consts')
+const DefOptions={
+    RowFormat:'ROW_FORMAT=DYNAMIC'
+}
+
 
 module.exports = class SyncDb extends DriverMysql {
 
@@ -35,7 +39,11 @@ module.exports = class SyncDb extends DriverMysql {
 
     }
 
-    async Sync() {
+    async Sync(lDatos = false,Options=null) {
+
+        if(!Options){
+            Options=DefOptions
+        }
 
         try {
 
@@ -43,7 +51,7 @@ module.exports = class SyncDb extends DriverMysql {
 
             await this.InitConections()
             await this.PrepareSync()
-            await this.SyncTables()
+            await this.SyncTables(lDatos,Options)
             await this.SyncViews()
             await this.SyncProcedures()
             await this.SyncFunctions()
@@ -61,13 +69,26 @@ module.exports = class SyncDb extends DriverMysql {
 
     }
 
-    async SyncTables() {
+    async SyncTables(lDatos,Options) {
 
         if (Object.keys(this.TablesDiff).length > 0) {
 
             for (const key in this.TablesDiff) {
 
                 const Table = this.TablesDiff[key]
+
+                //se establece la base de datos
+                await this.Cnn1.query(`USE ${this.Cnn1.cDatabase}`)  
+
+                //se ajusta el rowformat
+                if(Table.ActionQuery.search(Options.RowFormat)===-1){
+                    
+                    Table.ActionQuery=Table.ActionQuery.replace(EnumRowFormat.ROW_FORMAT_COMPACT, Options.RowFormat);
+                    Table.ActionQuery=Table.ActionQuery.replace(EnumRowFormat.ROW_FORMAT_COMPRESSED, Options.RowFormat);
+                    Table.ActionQuery=Table.ActionQuery.replace(EnumRowFormat.ROW_FORMAT_DYNAMIC,Options.RowFormat);
+                    Table.ActionQuery=Table.ActionQuery.replace(EnumRowFormat.ROW_FORMAT_REDUNDANT,Options.RowFormat);
+
+                }
 
                 if (Table.Action == EnumActions.CREATE_TABLE || Table.Action == EnumActions.DROP_TABLE) {
 
@@ -92,6 +113,11 @@ module.exports = class SyncDb extends DriverMysql {
 
                 }
 
+                if (lDatos) {
+                   // console.log(this.Cnn2.cDatabase)
+                   // console.log(this.Cnn1.cDatabase)
+                   await this.CopyTableData(key,this.Cnn2.cDatabase,this.Cnn1.cDatabase)
+                }
             }
 
         }
@@ -195,7 +221,7 @@ module.exports = class SyncDb extends DriverMysql {
     async PrepareSync() {
 
         await this.Cnn1.beginTransaction()
-        await this.Cnn1.query("CREATE DATABASE IF NOT EXISTS " + this.Cnn1.cDataBase)
+        await this.Cnn1.query("CREATE DATABASE IF NOT EXISTS " + this.Cnn1.cDatabase)
         await this.Cnn1.query("SET FOREIGN_KEY_CHECKS = 0")
 
     }
@@ -214,7 +240,7 @@ module.exports = class SyncDb extends DriverMysql {
 
     }
 
-    async CopyTable(TableName, SourceSchema, TargetSchema, lData=false) {
+    async CopyTable(TableName, SourceSchema, TargetSchema, lData = false) {
 
         try {
 
@@ -228,59 +254,13 @@ module.exports = class SyncDb extends DriverMysql {
             //se elimina la table en el destino
             await this.Cnn1.query(`USE ${TargetSchema}`)
             await this.Cnn1.query(cDrop)
-            
+
             //se crea la tabla
             await this.Cnn1.query(cTable)
 
             //se valida si se copia con datos
-            if(lData){
-
-                //se obtienen la cantidad de registros
-                await this.Cnn2.query(`USE ${SourceSchema}`)
-                const [Count]=await this.Cnn2.query(`SELECT COUNT(*) AS COUNT FROM ${SourceSchema}.${TableName}`)
-                if(Count.COUNT>0){
-
-                  let last= Math.ceil(Count.COUNT/1000)    
-                  let start= 1
-                  let end = last;
-                  let current=0
-
-                  for ( let i = start ; i <= end; i++ ) {
-
-                    //se ejecuta el query se use para prevenir error en seleccion de base de datos
-                    await this.Cnn2.query(`USE ${SourceSchema}`) 
-                    //se obtienen los registros
-                    const Rows=await this.Cnn2.query(`SELECT * FROM ${SourceSchema}.${TableName} LIMIT ${current},1000`)
-                    current+=1000
-                    
-                    if(Rows.length>0){
-
-                        //se selecciona la base de datos para asegurar copiado correcto
-                        await this.Cnn1.query(`USE ${SourceSchema}`)
-
-                        //se insertan los datos  en el destino
-                        let fiels=Object.keys(Rows[0]).reduce((P,C,I)=>{ return (`${P}${(I===0)?'':','}${C}`) },'') 
-    
-                        const aInsert=Rows.reduce((P,C)=>{
-
-                            const Fila=Object.keys(C).reduce((Prev,Field)=>{ 
-                                Prev.push(C[Field])
-                                return Prev
-                            },[]) 
-
-                            P.push(Fila)
-                            return P
-
-                        },[])
-
-                        const cSQL=`INSERT INTO ${TargetSchema}.${TableName}(${fiels}) VALUES ?`
-                        await this.Cnn1.query(cSQL,[aInsert]) 
-
-                    }
-
-                  }
-
-                }
+            if (lData) {
+                await this.CopyTableData(TableName, SourceSchema, TargetSchema)
             }
 
         } catch (error) {
@@ -289,6 +269,56 @@ module.exports = class SyncDb extends DriverMysql {
         }
 
 
+    }
+
+    async CopyTableData(TableName, SourceSchema, TargetSchema) {
+
+        //se obtienen la cantidad de registros
+        await this.Cnn2.query(`USE ${SourceSchema}`)
+        const [Count] = await this.Cnn2.query(`SELECT COUNT(*) AS COUNT FROM ${SourceSchema}.${TableName}`)
+        if (Count.COUNT > 0) {
+
+            let last = Math.ceil(Count.COUNT / 200)
+            let start = 1
+            let end = last;
+            let current = 0
+
+            for (let i = start; i <= end; i++) {
+
+                //se ejecuta el query se use para prevenir error en seleccion de base de datos
+                await this.Cnn2.query(`USE ${SourceSchema}`)
+                //se obtienen los registros
+                const Rows = await this.Cnn2.query(`SELECT * FROM ${SourceSchema}.${TableName} LIMIT ${current},200`)
+                current += 200
+
+                if (Rows.length > 0) {
+
+                    //se selecciona la base de datos para asegurar copiado correcto
+                    await this.Cnn1.query(`USE ${SourceSchema}`)
+
+                    //se insertan los datos  en el destino
+                    let fiels = Object.keys(Rows[0]).reduce((P, C, I) => { return (`${P}${(I === 0) ? '' : ','}${C}`) }, '')
+
+                    const aInsert = Rows.reduce((P, C) => {
+
+                        const Fila = Object.keys(C).reduce((Prev, Field) => {
+                            Prev.push(C[Field])
+                            return Prev
+                        }, [])
+
+                        P.push(Fila)
+                        return P
+
+                    }, [])
+
+                    const cSQL = `INSERT INTO ${TargetSchema}.${TableName}(${fiels}) VALUES ?`
+                    await this.Cnn1.query(cSQL, [aInsert])
+
+                }
+
+            }
+
+        }
     }
 
     async InitConections() {

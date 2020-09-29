@@ -294,7 +294,7 @@ module.exports = class SyncDb extends DriverMysql {
                 if (Rows.length > 0) {
 
                     //se selecciona la base de datos para asegurar copiado correcto
-                    await this.Cnn1.query(`USE ${SourceSchema}`)
+                    await this.Cnn1.query(`USE ${TargetSchema}`)
 
                     //se insertan los datos  en el destino
                     let fiels = Object.keys(Rows[0]).reduce((P, C, I) => { return (`${P}${(I === 0) ? '' : ','}${C}`) }, '')
